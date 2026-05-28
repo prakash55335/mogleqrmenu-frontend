@@ -1,8 +1,8 @@
 import axios from 'axios'
 
 const API = axios.create({
-  // Hardcoded your working live Railway URL directly as the fallback configuration
-  baseURL: import.meta.env.VITE_API_URL || 'https://railway.app',
+  // Fixed: Now points to your actual, unique Django backend deployment URL on Railway
+  baseURL: import.meta.env.VITE_API_URL || 'https://web-production-a3bd8.up.railway.app',
   headers: {
     'Content-Type': 'application/json',
   },
