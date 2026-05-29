@@ -65,7 +65,7 @@ export default function CartPage() {
     setCustomerPhone(val)
     if (!val) {
       setPhoneError('')
-    } else if (!/^[789]/.test(val)) {
+    } else if (!/^[6789]/.test(val)) {
       setPhoneError('Number must be valid Format')
     } else if (val.length < 10) {
       setPhoneError('Enter all 10 digits')
