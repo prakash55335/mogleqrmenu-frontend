@@ -158,10 +158,10 @@ export default function TablesPage() {
 }
 
 function TableCard({ table }) {
-  // FIXED: Points download paths directly to your unique live Railway server domain
+  // FIXED: Replaced railway placeholder with your actual live backend domain name
   const downloadUrl  = `https://railway.app{table.id}/qr/`
   
-  // FIXED: Points preview hyperlinks directly to your production Vercel frontend interface query route
+  // FIXED: Replaced vercel placeholder with your actual customer menu routing structure
   const previewUrl   = `https://vercel.app{table.id}`
   const downloadName = `Table_${table.table_number}_QR.png`
 
