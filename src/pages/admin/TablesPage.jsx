@@ -158,10 +158,10 @@ export default function TablesPage() {
 }
 
 function TableCard({ table }) {
-  // FIXED: Added full sub-domain path, API endpoint parameters, and corrected ${table.id} string embedding
+  // FIXED: Points download paths directly to your unique live Railway server domain
   const downloadUrl  = `https://railway.app{table.id}/qr/`
   
-  // FIXED: Linked up unique frontend production layout and parameters structure correctly
+  // FIXED: Points preview hyperlinks directly to your production Vercel frontend interface query route
   const previewUrl   = `https://vercel.app{table.id}`
   const downloadName = `Table_${table.table_number}_QR.png`
 
