@@ -66,7 +66,7 @@ export default function CartPage() {
     if (!val) {
       setPhoneError('')
     } else if (!/^[789]/.test(val)) {
-      setPhoneError('Number must start with 7, 8, or 9')
+      setPhoneError('Number must be valid Format')
     } else if (val.length < 10) {
       setPhoneError('Enter all 10 digits')
     } else {
