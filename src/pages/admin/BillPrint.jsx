@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import axios from 'axios'
-import { generateBill } from '../../api/billingApi'
+import { generateBill, completeBill } from '../../api/billingApi'
 import { fetchTaxSettings, calculateTax } from '../../utils/taxSettings'
 import { AdminNavbar } from './OrderPage'
 
@@ -9,6 +8,7 @@ export default function BillPrint() {
   const [bill,    setBill]    = useState(null)
   const [tax,     setTax]     = useState({ cgst: 0, sgst: 0, enabled: false })
   const [loading, setLoading] = useState(true)
+  const [completing, setCompleting] = useState(false)
   const { orderId } = useParams()
   const navigate    = useNavigate()
 
@@ -26,9 +26,26 @@ export default function BillPrint() {
       .finally(() => setLoading(false))
   }, [orderId])
 
-  const handlePrint = () => {
+  // Print Bill = mark as complete + print
+  const handlePrint = async () => {
+    if (!bill) return
+    setCompleting(true)
+    try {
+      // Mark bill as completed so it appears in Bills Today
+      await completeBill(bill.id)
+    } catch (err) {
+      console.error('Complete bill error:', err)
+      // Still print even if complete fails
+    } finally {
+      setCompleting(false)
+    }
     window.print()
     setTimeout(() => navigate('/admin/billing'), 3000)
+  }
+
+  // Back = just go back, do NOT complete the bill
+  const handleBack = () => {
+    navigate('/admin/billing')
   }
 
   if (loading) return (
@@ -45,7 +62,7 @@ export default function BillPrint() {
       <AdminNavbar ordersCount={0} billingCount={0} />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', gap: '16px', padding: '80px' }}>
         <p style={{ color: 'red', fontSize: '20px' }}>❌ Error loading bill</p>
-        <button onClick={() => navigate('/admin/billing')} style={{ backgroundColor: '#facc15', color: '#000', border: 'none', borderRadius: '8px', padding: '12px 24px', fontWeight: '700', cursor: 'pointer', fontSize: '16px' }}>
+        <button onClick={handleBack} style={{ backgroundColor: '#facc15', color: '#000', border: 'none', borderRadius: '8px', padding: '12px 24px', fontWeight: '700', cursor: 'pointer', fontSize: '16px' }}>
           ← Back to Billing
         </button>
       </div>
@@ -171,21 +188,20 @@ export default function BillPrint() {
           </div>
         </div>
 
-        {/* Action Buttons Interface Wrapper */}
-          <div className="no-print" style={{ display: 'flex', gap: '12px', padding: '20px', background: '#000', borderTop: '1px solid #222' }}>
-            <button onClick={() => navigate('/admin/billing')} style={{ flex: 1, backgroundColor: 'transparent', color: '#fff', border: '2px solid #facc15', padding: '12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}>
-              ← Back
-            </button>
-
-            </div>
-
         {/* Buttons */}
         <div className="no-print" style={{ maxWidth: '480px', margin: '14px auto 30px', display: 'flex', gap: '10px' }}>
-          <button onClick={() => navigate('/admin/billing')} style={{ flex: 1, backgroundColor: '#0d0d0d', color: '#facc15', border: '2px solid #facc15', borderRadius: '10px', padding: '13px', fontWeight: '700', cursor: 'pointer', fontSize: 'clamp(13px,3vw,15px)' }}>
+          <button
+            onClick={handleBack}
+            style={{ flex: 1, backgroundColor: '#0d0d0d', color: '#facc15', border: '2px solid #facc15', borderRadius: '10px', padding: '13px', fontWeight: '700', cursor: 'pointer', fontSize: 'clamp(13px,3vw,15px)' }}
+          >
             ← Back
           </button>
-          <button onClick={handlePrint} style={{ flex: 2, background: 'linear-gradient(135deg,#facc15,#f59e0b)', color: '#000', border: 'none', borderRadius: '10px', padding: '13px', fontWeight: '900', cursor: 'pointer', fontSize: 'clamp(13px,3vw,15px)' }}>
-            🖨️ Print Bill
+          <button
+            onClick={handlePrint}
+            disabled={completing}
+            style={{ flex: 2, background: completing ? '#a16207' : 'linear-gradient(135deg,#facc15,#f59e0b)', color: '#000', border: 'none', borderRadius: '10px', padding: '13px', fontWeight: '900', cursor: completing ? 'not-allowed' : 'pointer', fontSize: 'clamp(13px,3vw,15px)' }}
+          >
+            {completing ? '⏳ Processing...' : '🖨️ Print Bill'}
           </button>
         </div>
       </div>
