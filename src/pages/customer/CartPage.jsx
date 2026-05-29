@@ -22,6 +22,10 @@ export default function CartPage() {
   const [noteFocus, setNoteFocus]         = useState(false)
   const [tax, setTax]                     = useState({ cgst: 0, sgst: 0, enabled: false })
 
+  // Inline error states
+  const [nameError, setNameError]   = useState('')
+  const [phoneError, setPhoneError] = useState('')
+
   useEffect(() => {
     fetchTaxSettings().then(t => setTax(t))
   }, [])
@@ -44,75 +48,76 @@ export default function CartPage() {
       return u
     })
 
- const handlePlaceOrder = async () => {
-  if (!cartItems.length) return
-
-  // Name must be string (letters only, no numbers)
-  if (!customerName.trim()) {
-    document.getElementById('nameInput').style.borderColor = '#ef4444'
-    setTimeout(() => {
-      const el = document.getElementById('nameInput')
-      if (el) el.style.borderColor = '#26262e'
-    }, 2000)
-    toast.error('Please enter your name')
-    return
+  // Real-time name validation
+  const handleNameChange = (e) => {
+    const val = e.target.value.replace(/[^a-zA-Z\s]/g, '')
+    setCustomerName(val)
+    if (!val.trim()) {
+      setNameError('Name is required')
+    } else {
+      setNameError('')
+    }
   }
 
-  if (!/^[a-zA-Z\s]+$/.test(customerName.trim())) {
-    document.getElementById('nameInput').style.borderColor = '#ef4444'
-    setTimeout(() => {
-      const el = document.getElementById('nameInput')
-      if (el) el.style.borderColor = '#26262e'
-    }, 2000)
-    toast.error('Name must contain letters only, no numbers')
-    return
+  // Real-time phone validation
+  const handlePhoneChange = (e) => {
+    const val = e.target.value.replace(/\D/g, '').slice(0, 10)
+    setCustomerPhone(val)
+    if (!val) {
+      setPhoneError('')
+    } else if (!/^[789]/.test(val)) {
+      setPhoneError('Number must start with 7, 8, or 9')
+    } else if (val.length < 10) {
+      setPhoneError('Enter all 10 digits')
+    } else {
+      setPhoneError('')
+    }
   }
 
-  // Mobile: exactly 10 digits, starts with 9, 8, or 7
-  if (!customerPhone.trim() || customerPhone.trim().length < 10) {
-    document.getElementById('phoneInput').style.borderColor = '#ef4444'
-    setTimeout(() => {
-      const el = document.getElementById('phoneInput')
-      if (el) el.style.borderColor = '#26262e'
-    }, 2000)
-    toast.error('Please enter a valid 10-digit mobile number')
-    return
+  const handlePlaceOrder = async () => {
+    if (!cartItems.length) return
+
+    // Final check before submit
+    if (!customerName.trim()) {
+      setNameError('Name is required')
+      return
+    }
+    if (nameError) return
+
+    if (!customerPhone.trim() || customerPhone.length < 10) {
+      setPhoneError('Enter a valid 10-digit mobile number')
+      return
+    }
+    if (phoneError) return
+
+    setPlacing(true)
+    try {
+      const res = await placeOrder({
+        table_id:       parseInt(tableId),
+        customer_note:  note,
+        customer_name:  customerName.trim(),
+        customer_phone: customerPhone.trim(),
+        items: cartItems.map(i => ({ menu_item_id: i.id, quantity: i.quantity })),
+      })
+
+      const key      = `orders_table_${tableId}`
+      const existing = JSON.parse(localStorage.getItem(key) || '[]')
+      existing.push(res.data.order_id)
+      localStorage.setItem(key, JSON.stringify(existing))
+
+      navigate(`/order-confirmed?orderId=${res.data.order_id}&tableId=${tableId}`, {
+        state: { customerName: customerName.trim(), customerPhone: customerPhone.trim() }
+      })
+    } catch {
+      toast.error('Failed to place order. Try again.')
+    } finally {
+      setPlacing(false)
+    }
   }
 
-  if (!/^[789]\d{9}$/.test(customerPhone.trim())) {
-    document.getElementById('phoneInput').style.borderColor = '#ef4444'
-    setTimeout(() => {
-      const el = document.getElementById('phoneInput')
-      if (el) el.style.borderColor = '#26262e'
-    }, 2000)
-    toast.error('Mobile number must start with 7, 8, or 9')
-    return
-  }
-
-  setPlacing(true)
-  try {
-    const res = await placeOrder({
-      table_id:       parseInt(tableId),
-      customer_note:  note,
-      customer_name:  customerName.trim(),
-      customer_phone: customerPhone.trim(),
-      items: cartItems.map(i => ({ menu_item_id: i.id, quantity: i.quantity })),
-    })
-
-    const key      = `orders_table_${tableId}`
-    const existing = JSON.parse(localStorage.getItem(key) || '[]')
-    existing.push(res.data.order_id)
-    localStorage.setItem(key, JSON.stringify(existing))
-
-    navigate(`/order-confirmed?orderId=${res.data.order_id}&tableId=${tableId}`, {
-      state: { customerName: customerName.trim(), customerPhone: customerPhone.trim() }
-    })
-  } catch {
-    toast.error('Failed to place order. Try again.')
-  } finally {
-    setPlacing(false)
-  }
-}
+  // Border color logic
+  const nameBorder = nameError ? '#ef4444' : nameFocus ? '#facc15' : '#26262e'
+  const phoneBorder = phoneError ? '#ef4444' : phoneFocus ? '#facc15' : '#26262e'
 
   return (
     <div style={{ background: '#0c0c0f', minHeight: '100vh', color: '#fff', fontFamily: "'DM Sans',sans-serif", maxWidth: 480, margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
@@ -161,35 +166,62 @@ export default function CartPage() {
             <div style={{ background: '#16161c', border: '1.5px solid #facc1528', borderRadius: 14, padding: 15, marginTop: 16, marginBottom: 14 }}>
               <p style={{ color: '#facc15', fontSize: 12, fontWeight: 800, letterSpacing: 1, textTransform: 'uppercase', margin: '0 0 13px' }}>📋 Your Details (Required)</p>
 
-              <div style={{ marginBottom: 11 }}>
+              {/* NAME */}
+              <div style={{ marginBottom: 14 }}>
                 <label style={{ color: '#6b7280', fontSize: 10, display: 'block', marginBottom: 5, letterSpacing: 1, textTransform: 'uppercase' }}>Full Name *</label>
-         <input id="nameInput" type="text" value={customerName} onChange={e => {const val = e.target.value.replace(/[^a-zA-Z\s]/g, '')
-setCustomerName(val)
-  }}
-  placeholder="Enter your name"
-  style={{
-    width: '100%',
-    background: '#0c0c0f',
-    border: `1.5px solid ${nameFocus ? '#facc15' : '#26262e'}`,
-    borderRadius: 11,
-    padding: '10px 13px',
-    color: '#fff',
-    fontSize: 14,
-    outline: 'none',
-    fontFamily: 'inherit',
-    boxSizing: 'border-box',
-    transition: 'border-color .2s'
-  }}
-  onFocus={() => setNameFocus(true)}
-  onBlur={() => setNameFocus(false)}
-/>
+                <input
+                  id="nameInput"
+                  type="text"
+                  value={customerName}
+                  onChange={handleNameChange}
+                  placeholder="Enter your name"
+                  style={{
+                    width: '100%', background: '#0c0c0f',
+                    border: `1.5px solid ${nameBorder}`,
+                    borderRadius: 11, padding: '10px 13px',
+                    color: '#fff', fontSize: 14, outline: 'none',
+                    fontFamily: 'inherit', boxSizing: 'border-box',
+                    transition: 'border-color .2s'
+                  }}
+                  onFocus={() => setNameFocus(true)}
+                  onBlur={() => setNameFocus(false)}
+                />
+                {/* Inline error message */}
+                {nameError && (
+                  <p style={{ color: '#ef4444', fontSize: 11, margin: '5px 0 0', fontWeight: 600 }}>
+                    ⚠ {nameError}
+                  </p>
+                )}
               </div>
 
+              {/* PHONE */}
               <div>
                 <label style={{ color: '#6b7280', fontSize: 10, display: 'block', marginBottom: 5, letterSpacing: 1, textTransform: 'uppercase' }}>Mobile Number *</label>
-                <input id="phoneInput" type="tel" value={customerPhone} onChange={e => setCustomerPhone(e.target.value.replace(/\D/g, '').slice(0, 10))} placeholder="10-digit mobile number" maxLength={10}
-                  style={{ width: '100%', background: '#0c0c0f', border: `1.5px solid ${phoneFocus ? '#facc15' : '#26262e'}`, borderRadius: 11, padding: '10px 13px', color: '#fff', fontSize: 14, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', transition: 'border-color .2s' }}
-                  onFocus={() => setPhoneFocus(true)} onBlur={() => setPhoneFocus(false)} />
+                <input
+                  id="phoneInput"
+                  type="tel"
+                  value={customerPhone}
+                  onChange={handlePhoneChange}
+                  placeholder="10-digit mobile number"
+                  maxLength={10}
+                  style={{
+                    width: '100%', background: '#0c0c0f',
+                    border: `1.5px solid ${phoneBorder}`,
+                    borderRadius: 11, padding: '10px 13px',
+                    color: phoneError ? '#ef4444' : '#fff',
+                    fontSize: 14, outline: 'none',
+                    fontFamily: 'inherit', boxSizing: 'border-box',
+                    transition: 'border-color .2s, color .2s'
+                  }}
+                  onFocus={() => setPhoneFocus(true)}
+                  onBlur={() => setPhoneFocus(false)}
+                />
+                {/* Inline error message */}
+                {phoneError && (
+                  <p style={{ color: '#ef4444', fontSize: 11, margin: '5px 0 0', fontWeight: 600 }}>
+                    ⚠ {phoneError}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -203,13 +235,10 @@ setCustomerName(val)
 
             {/* TOTALS */}
             <div style={{ background: '#16161c', border: '1px solid #26262e', borderRadius: 14, padding: 15, marginBottom: 14 }}>
-
               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#52525b', marginBottom: 7 }}>
                 <span>Subtotal ({totalItems} items)</span>
                 <span>₹{subtotal.toFixed(2)}</span>
               </div>
-
-              {/* GST line — shows only if enabled */}
               {tax.enabled ? (
                 <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 13, color: '#52525b', marginBottom: 7 }}>
                   <span>GST ({tax.cgst + tax.sgst}%)</span>
@@ -221,15 +250,11 @@ setCustomerName(val)
                   <span>Not applicable</span>
                 </div>
               )}
-
               <div style={{ height: 1, background: '#26262e', margin: '10px 0' }} />
-
               <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 900, fontSize: 17 }}>
                 <span style={{ color: '#fff' }}>Total Amount</span>
                 <span style={{ color: '#facc15' }}>₹{grandTotal.toFixed(2)}</span>
               </div>
-
-              {/* GST note */}
               {tax.enabled && (
                 <p style={{ color: '#52525b', fontSize: 10, margin: '8px 0 0', textAlign: 'right', letterSpacing: 0.5 }}>
                   Incl. CGST {tax.cgst}% + SGST {tax.sgst}%
@@ -243,8 +268,26 @@ setCustomerName(val)
       {/* PLACE ORDER BUTTON */}
       {cartItems.length > 0 && (
         <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, padding: '12px 16px', background: '#0c0c0f', borderTop: '1px solid #26262e' }}>
-          <button onClick={handlePlaceOrder} disabled={placing}
-            style={{ width: '100%', background: placing ? '#78350f' : 'linear-gradient(135deg,#facc15,#f59e0b)', color: '#000', border: 'none', borderRadius: 14, padding: 15, fontWeight: 900, fontSize: 15, cursor: placing ? 'not-allowed' : 'pointer', letterSpacing: 1, textTransform: 'uppercase', fontFamily: 'inherit', boxShadow: placing ? 'none' : '0 4px 20px rgba(250,204,21,.4)' }}>
+          <button
+            onClick={handlePlaceOrder}
+            disabled={placing || !!nameError || !!phoneError}
+            style={{
+              width: '100%',
+              background: placing || nameError || phoneError
+                ? '#3f3f46'
+                : 'linear-gradient(135deg,#facc15,#f59e0b)',
+              color: placing || nameError || phoneError ? '#71717a' : '#000',
+              border: 'none', borderRadius: 14, padding: 15,
+              fontWeight: 900, fontSize: 15,
+              cursor: placing || nameError || phoneError ? 'not-allowed' : 'pointer',
+              letterSpacing: 1, textTransform: 'uppercase',
+              fontFamily: 'inherit',
+              boxShadow: placing || nameError || phoneError
+                ? 'none'
+                : '0 4px 20px rgba(250,204,21,.4)',
+              transition: 'all 0.2s'
+            }}
+          >
             {placing ? '⏳ Placing Order...' : `PLACE ORDER  ₹${grandTotal.toFixed(0)} →`}
           </button>
         </div>
