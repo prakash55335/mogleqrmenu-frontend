@@ -172,13 +172,46 @@ export default function MenuPage() {
           onBlur={e => e.target.style.borderColor = '#26262e'} />
       </div>
 
-      {/* CATEGORY TABS */}
-      <div style={{ display: 'flex', gap: 8, overflowX: 'auto', padding: '12px 16px', scrollbarWidth: 'none' }}>
-        <CatTab label="🍽️ All" active={activeCategory === 'all'} onClick={() => setActiveCategory('all')} />
-        {(categories || []).map(cat => (
-          <CatTab key={cat.id} label={`${CAT_EMOJI[cat.name] || '🍴'} ${cat.name}`} active={activeCategory === cat.name} onClick={() => setActiveCategory(cat.name)} />
-        ))}
-      </div>
+      {/* CATEGORY TABS — dropdown on mobile, scroll tabs on tablet/desktop */}
+<div style={{ padding: '12px 16px' }}>
+
+  {/* Mobile dropdown (hidden on wider screens) */}
+  <div className="mobile-cat-dropdown">
+    <select
+      value={activeCategory}
+      onChange={e => setActiveCategory(e.target.value)}
+      style={{
+        width: '100%',
+        background: '#16161c',
+        border: '1.5px solid #facc15',
+        borderRadius: 14,
+        padding: '10px 14px',
+        color: activeCategory === 'all' ? '#facc15' : '#fff',
+        fontSize: 14,
+        fontWeight: 700,
+        fontFamily: 'inherit',
+        outline: 'none',
+        cursor: 'pointer',
+      }}
+    >
+      <option value="all">🍽️ All Categories</option>
+      {(categories || []).map(cat => (
+        <option key={cat.id} value={cat.name}>
+          {CAT_EMOJI[cat.name] || '🍴'} {cat.name}
+        </option>
+      ))}
+    </select>
+  </div>
+
+  {/* Desktop/tablet scroll tabs (hidden on mobile) */}
+  <div className="desktop-cat-tabs" style={{ display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none' }}>
+    <CatTab label="🍽️ All" active={activeCategory === 'all'} onClick={() => setActiveCategory('all')} />
+    {(categories || []).map(cat => (
+      <CatTab key={cat.id} label={`${CAT_EMOJI[cat.name] || '🍴'} ${cat.name}`} active={activeCategory === cat.name} onClick={() => setActiveCategory(cat.name)} />
+    ))}
+  </div>
+
+</div>
 
       {/* MENU LIST */}
       {loading ? (
@@ -204,34 +237,76 @@ export default function MenuPage() {
         ))
       )}
 
-      {/* CART BAR or BOTTOM NAV */}
-      {totalItems > 0 ? (
-        <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, background: 'linear-gradient(135deg,#facc15,#f59e0b)', padding: '13px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 100, boxShadow: '0 -4px 24px rgba(250,204,21,.3)' }}>
+      {/* CART BAR */}
+      {totalItems > 0 && (
+        <div style={{
+          position: 'fixed', bottom: 56, left: '50%',
+          transform: 'translateX(-50%)', width: '100%', maxWidth: 480,
+          background: 'linear-gradient(135deg,#facc15,#f59e0b)',
+          padding: '13px 18px', display: 'flex',
+          justifyContent: 'space-between', alignItems: 'center',
+          zIndex: 100, boxShadow: '0 -4px 24px rgba(250,204,21,.3)'
+        }}>
           <div>
-            <p style={{ color: '#000', fontWeight: 900, fontSize: 14, margin: 0 }}>🛒 {totalItems} item{totalItems !== 1 ? 's' : ''} added</p>
-            <p style={{ color: '#78350f', fontSize: 11, fontWeight: 600, margin: 0 }}>₹{totalPrice.toFixed(0)}</p>
+            <p style={{ color: '#000', fontWeight: 900, fontSize: 14, margin: 0 }}>
+              🛒 {totalItems} item{totalItems !== 1 ? 's' : ''} added
+            </p>
+            <p style={{ color: '#78350f', fontSize: 11, fontWeight: 600, margin: 0 }}>
+              ₹{totalPrice.toFixed(0)}
+            </p>
           </div>
-          <button onClick={goToCart} style={{ background: '#000', color: '#facc15', border: 'none', borderRadius: 12, padding: '9px 18px', fontWeight: 900, cursor: 'pointer', fontSize: 13, fontFamily: 'inherit' }}>View Cart →</button>
-        </div>
-      ) : (
-        <div style={{ position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)', width: '100%', maxWidth: 480, display: 'flex', background: '#0f0f14', borderTop: '1px solid #26262e', zIndex: 90 }}>
-          {[
-            { icon: '🍽️', label: 'MENU',     key: 'menu',     path: `/menu?tableId=${tableId}` },
-            { icon: '📋', label: 'ORDERS',   key: 'orders',   path: `/my-orders?tableId=${tableId}` },
-            { icon: '💬', label: 'FEEDBACK', key: 'feedback', path: `/feedback?tableId=${tableId}` },
-          ].map(n => (
-            <button key={n.key}
-              onClick={() => navigate(n.path)}
-              style={{ flex: 1, padding: '10px 0', border: 'none', background: 'transparent', color: n.key === 'menu' ? '#facc15' : '#3f3f46', cursor: 'pointer', fontSize: 9, fontWeight: 700, letterSpacing: .5, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 3, fontFamily: 'inherit' }}>
-              <span style={{ fontSize: 19 }}>{n.icon}</span>
-              {n.label}
-              {n.key === 'menu' && <div style={{ width: 4, height: 4, borderRadius: '50%', background: '#facc15', marginTop: 1 }} />}
-            </button>
-          ))}
+          <button onClick={goToCart} style={{
+            background: '#000', color: '#facc15', border: 'none',
+            borderRadius: 12, padding: '9px 18px', fontWeight: 900,
+            cursor: 'pointer', fontSize: 13, fontFamily: 'inherit'
+          }}>
+            View Cart →
+          </button>
         </div>
       )}
-    </div>
-  )
+
+      {/* BOTTOM NAV — always visible */}
+      <div style={{
+        position: 'fixed', bottom: 0, left: '50%',
+        transform: 'translateX(-50%)', width: '100%', maxWidth: 480,
+        display: 'flex', background: '#0f0f14',
+        borderTop: '1px solid #26262e', zIndex: 90
+      }}>
+        {[
+          { icon: '🍽️', label: 'MENU',     key: 'menu',     path: `/menu?tableId=${tableId}` },
+          { icon: '📋', label: 'ORDERS',   key: 'orders',   path: `/my-orders?tableId=${tableId}` },
+          { icon: '💬', label: 'FEEDBACK', key: 'feedback', path: `/feedback?tableId=${tableId}` },
+        ].map(n => {
+          const isActive = n.key === 'menu'
+          return (
+            <button
+              key={n.key}
+              onClick={() => navigate(n.path)}
+              style={{
+                flex: 1, padding: '10px 0', border: 'none',
+                background: 'transparent',
+                color: isActive ? '#facc15' : '#a1a1aa',
+                cursor: 'pointer', fontSize: 9, fontWeight: 700,
+                letterSpacing: .5, display: 'flex', flexDirection: 'column',
+                alignItems: 'center', gap: 3, fontFamily: 'inherit',
+                transition: 'color 0.2s'
+              }}
+            >
+              <span style={{ fontSize: 19 }}>{n.icon}</span>
+              {n.label}
+              {isActive && (
+                <div style={{
+                  width: 4, height: 4, borderRadius: '50%',
+                  background: '#facc15', marginTop: 1
+                }} />
+              )}
+            </button>
+          )
+        })}
+      </div>
+
+    </div>   
+  )          
 }
 
 function CatTab({ label, active, onClick }) {

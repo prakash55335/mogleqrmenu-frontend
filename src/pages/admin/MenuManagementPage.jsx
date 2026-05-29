@@ -1,5 +1,6 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback  } from 'react'
 import { menuApi } from '../../api/menuApi'
+import { useNavigate } from 'react-router-dom'
 import ImageUpload from '../../components/menu/ImageUpload'
 
 const EMPTY_FORM = {
@@ -20,6 +21,7 @@ const inputStyle = {
 }
 
 export default function MenuManagementPage() {
+  const navigate = useNavigate()
   const [categories, setCategories] = useState([])
   const [selected,   setSelected]   = useState(null)
   const [form,       setForm]       = useState(EMPTY_FORM)
@@ -136,24 +138,40 @@ export default function MenuManagementPage() {
         display: 'flex', flexDirection: 'column', overflow: 'hidden'
       }}>
 
-        {/* Top bar */}
-        <div style={{ padding: '16px 16px 12px', borderBottom: '1px solid #eee' }}>
-          <div style={{
-            display: 'flex', justifyContent: 'space-between',
-            alignItems: 'center', marginBottom: 10
-          }}>
-            <span style={{ fontWeight: 700, fontSize: 15 }}>Menu Management</span>
-            <button
-              onClick={startNew}
-              style={{
-                background: '#FF6B35', color: '#fff', border: 'none',
-                borderRadius: 6, padding: '7px 14px',
-                fontSize: 13, fontWeight: 600, cursor: 'pointer'
-              }}
-            >
-              + Add item
-            </button>
-          </div>
+  {/* Top bar */}
+<div style={{ padding: '16px 16px 12px', borderBottom: '1px solid #eee' }}>
+
+  {/* Back button */}
+  <button
+    onClick={() => navigate('/admin/orders')}
+    style={{
+      display: 'flex', alignItems: 'center', gap: 6,
+      background: 'none', border: 'none',
+      color: '#FF6B35', fontWeight: 700, fontSize: 13,
+      cursor: 'pointer', padding: '0 0 10px 0',
+      fontFamily: 'inherit'
+    }}
+  >
+    ← Back to Orders
+  </button>
+
+  <div style={{
+    display: 'flex', justifyContent: 'space-between',
+    alignItems: 'center', marginBottom: 10
+  }}>
+    <span style={{ fontWeight: 700, fontSize: 15 }}>Menu Management</span>
+    <button
+      onClick={startNew}
+      style={{
+        background: '#FF6B35', color: '#fff', border: 'none',
+        borderRadius: 6, padding: '7px 14px',
+        fontSize: 13, fontWeight: 600, cursor: 'pointer'
+      }}
+    >
+      + Add item
+    </button>
+  </div>
+  {/* rest of top bar stays same */}
           <input
             placeholder="Search items..."
             value={search}

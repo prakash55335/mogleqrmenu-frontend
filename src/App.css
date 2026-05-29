@@ -182,3 +182,20 @@
     border-right-color: var(--border);
   }
 }
+
+/* Category: dropdown on mobile, tabs on tablet/desktop */
+.mobile-cat-dropdown {
+  display: none;
+}
+.desktop-cat-tabs {
+  display: flex;
+}
+
+@media (max-width: 600px) {
+  .mobile-cat-dropdown {
+    display: block;
+  }
+  .desktop-cat-tabs {
+    display: none !important;
+  }
+}

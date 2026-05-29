@@ -44,52 +44,75 @@ export default function CartPage() {
       return u
     })
 
-  const handlePlaceOrder = async () => {
-    if (!cartItems.length) return
+ const handlePlaceOrder = async () => {
+  if (!cartItems.length) return
 
-    if (!customerName.trim()) {
-      document.getElementById('nameInput').style.borderColor = '#ef4444'
-      setTimeout(() => {
-        const el = document.getElementById('nameInput')
-        if (el) el.style.borderColor = '#26262e'
-      }, 2000)
-      toast.error('Please enter your name')
-      return
-    }
-    if (!customerPhone.trim() || customerPhone.trim().length < 10) {
-      document.getElementById('phoneInput').style.borderColor = '#ef4444'
-      setTimeout(() => {
-        const el = document.getElementById('phoneInput')
-        if (el) el.style.borderColor = '#26262e'
-      }, 2000)
-      toast.error('Please enter a valid 10-digit mobile number')
-      return
-    }
-
-    setPlacing(true)
-    try {
-      const res = await placeOrder({
-        table_id:       parseInt(tableId),
-        customer_note:  note,
-        customer_name:  customerName.trim(),
-        customer_phone: customerPhone.trim(),
-        items: cartItems.map(i => ({ menu_item_id: i.id, quantity: i.quantity })),
-      })
-
-      const key      = `orders_table_${tableId}`
-      const existing = JSON.parse(localStorage.getItem(key) || '[]')
-      existing.push(res.data.order_id)
-      localStorage.setItem(key, JSON.stringify(existing))
-
-      navigate(`/order-confirmed?orderId=${res.data.order_id}&tableId=${tableId}`, {
-        state: { customerName: customerName.trim(), customerPhone: customerPhone.trim() }
-      })
-    } catch {
-      toast.error('Failed to place order. Try again.')
-    } finally {
-      setPlacing(false)
-    }
+  // Name must be string (letters only, no numbers)
+  if (!customerName.trim()) {
+    document.getElementById('nameInput').style.borderColor = '#ef4444'
+    setTimeout(() => {
+      const el = document.getElementById('nameInput')
+      if (el) el.style.borderColor = '#26262e'
+    }, 2000)
+    toast.error('Please enter your name')
+    return
   }
+
+  if (!/^[a-zA-Z\s]+$/.test(customerName.trim())) {
+    document.getElementById('nameInput').style.borderColor = '#ef4444'
+    setTimeout(() => {
+      const el = document.getElementById('nameInput')
+      if (el) el.style.borderColor = '#26262e'
+    }, 2000)
+    toast.error('Name must contain letters only, no numbers')
+    return
+  }
+
+  // Mobile: exactly 10 digits, starts with 9, 8, or 7
+  if (!customerPhone.trim() || customerPhone.trim().length < 10) {
+    document.getElementById('phoneInput').style.borderColor = '#ef4444'
+    setTimeout(() => {
+      const el = document.getElementById('phoneInput')
+      if (el) el.style.borderColor = '#26262e'
+    }, 2000)
+    toast.error('Please enter a valid 10-digit mobile number')
+    return
+  }
+
+  if (!/^[789]\d{9}$/.test(customerPhone.trim())) {
+    document.getElementById('phoneInput').style.borderColor = '#ef4444'
+    setTimeout(() => {
+      const el = document.getElementById('phoneInput')
+      if (el) el.style.borderColor = '#26262e'
+    }, 2000)
+    toast.error('Mobile number must start with 7, 8, or 9')
+    return
+  }
+
+  setPlacing(true)
+  try {
+    const res = await placeOrder({
+      table_id:       parseInt(tableId),
+      customer_note:  note,
+      customer_name:  customerName.trim(),
+      customer_phone: customerPhone.trim(),
+      items: cartItems.map(i => ({ menu_item_id: i.id, quantity: i.quantity })),
+    })
+
+    const key      = `orders_table_${tableId}`
+    const existing = JSON.parse(localStorage.getItem(key) || '[]')
+    existing.push(res.data.order_id)
+    localStorage.setItem(key, JSON.stringify(existing))
+
+    navigate(`/order-confirmed?orderId=${res.data.order_id}&tableId=${tableId}`, {
+      state: { customerName: customerName.trim(), customerPhone: customerPhone.trim() }
+    })
+  } catch {
+    toast.error('Failed to place order. Try again.')
+  } finally {
+    setPlacing(false)
+  }
+}
 
   return (
     <div style={{ background: '#0c0c0f', minHeight: '100vh', color: '#fff', fontFamily: "'DM Sans',sans-serif", maxWidth: 480, margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
@@ -140,9 +163,26 @@ export default function CartPage() {
 
               <div style={{ marginBottom: 11 }}>
                 <label style={{ color: '#6b7280', fontSize: 10, display: 'block', marginBottom: 5, letterSpacing: 1, textTransform: 'uppercase' }}>Full Name *</label>
-                <input id="nameInput" type="text" value={customerName} onChange={e => setCustomerName(e.target.value)} placeholder="Enter your name"
-                  style={{ width: '100%', background: '#0c0c0f', border: `1.5px solid ${nameFocus ? '#facc15' : '#26262e'}`, borderRadius: 11, padding: '10px 13px', color: '#fff', fontSize: 14, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box', transition: 'border-color .2s' }}
-                  onFocus={() => setNameFocus(true)} onBlur={() => setNameFocus(false)} />
+         <input id="nameInput" type="text" value={customerName} onChange={e => {const val = e.target.value.replace(/[^a-zA-Z\s]/g, '')
+setCustomerName(val)
+  }}
+  placeholder="Enter your name"
+  style={{
+    width: '100%',
+    background: '#0c0c0f',
+    border: `1.5px solid ${nameFocus ? '#facc15' : '#26262e'}`,
+    borderRadius: 11,
+    padding: '10px 13px',
+    color: '#fff',
+    fontSize: 14,
+    outline: 'none',
+    fontFamily: 'inherit',
+    boxSizing: 'border-box',
+    transition: 'border-color .2s'
+  }}
+  onFocus={() => setNameFocus(true)}
+  onBlur={() => setNameFocus(false)}
+/>
               </div>
 
               <div>
