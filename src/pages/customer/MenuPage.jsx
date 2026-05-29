@@ -61,7 +61,6 @@ export default function MenuPage() {
     setLoading(true)
     getMenu()
       .then(res => {
-        // safely handle all possible response shapes
         const raw = res?.data?.data ?? res?.data ?? res ?? []
         setCategories(Array.isArray(raw) ? raw : [])
       })
@@ -71,7 +70,6 @@ export default function MenuPage() {
 
   useEffect(() => { fetchMenu() }, [fetchMenu])
 
-  // Supabase Realtime — re-fetch when any menu item changes
   useMenuRealtime(fetchMenu)
 
   useEffect(() => {
@@ -119,7 +117,18 @@ export default function MenuPage() {
   )
 
   return (
-    <div style={{ background: '#0c0c0f', minHeight: '100vh', color: '#fff', fontFamily: "'DM Sans',sans-serif", width: '100%', maxWidth: 480, margin: '0 auto', display: 'flex', flexDirection: 'column', paddingBottom: totalItems > 0 ? 70 : 56 }}>
+    <div style={{ background: '#0c0c0f', minHeight: '100vh', color: '#fff', fontFamily: "'DM Sans',sans-serif", width: '100%', maxWidth: 480, margin: '0 auto', display: 'flex', flexDirection: 'column', paddingBottom: totalItems > 0 ? 126 : 56 }}>
+
+      {/* INLINE CSS — guarantees dropdown/tabs switch correctly */}
+      <style>{`
+        .mobile-cat-dropdown { display: none; }
+        .desktop-cat-tabs    { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+        .desktop-cat-tabs::-webkit-scrollbar { display: none; }
+        @media (max-width: 600px) {
+          .mobile-cat-dropdown { display: block; }
+          .desktop-cat-tabs    { display: none !important; }
+        }
+      `}</style>
 
       {/* HEADER */}
       <div style={{ position: 'sticky', top: 0, zIndex: 50, background: 'rgba(12,12,15,.96)', backdropFilter: 'blur(16px)', borderBottom: '1px solid #26262e', padding: '10px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexShrink: 0 }}>
@@ -172,46 +181,46 @@ export default function MenuPage() {
           onBlur={e => e.target.style.borderColor = '#26262e'} />
       </div>
 
-      {/* CATEGORY TABS — dropdown on mobile, scroll tabs on tablet/desktop */}
-<div style={{ padding: '12px 16px' }}>
+      {/* CATEGORY — dropdown on mobile, scroll tabs on desktop */}
+      <div style={{ padding: '12px 16px' }}>
 
-  {/* Mobile dropdown (hidden on wider screens) */}
-  <div className="mobile-cat-dropdown">
-    <select
-      value={activeCategory}
-      onChange={e => setActiveCategory(e.target.value)}
-      style={{
-        width: '100%',
-        background: '#16161c',
-        border: '1.5px solid #facc15',
-        borderRadius: 14,
-        padding: '10px 14px',
-        color: activeCategory === 'all' ? '#facc15' : '#fff',
-        fontSize: 14,
-        fontWeight: 700,
-        fontFamily: 'inherit',
-        outline: 'none',
-        cursor: 'pointer',
-      }}
-    >
-      <option value="all">🍽️ All Categories</option>
-      {(categories || []).map(cat => (
-        <option key={cat.id} value={cat.name}>
-          {CAT_EMOJI[cat.name] || '🍴'} {cat.name}
-        </option>
-      ))}
-    </select>
-  </div>
+        {/* Mobile dropdown */}
+        <div className="mobile-cat-dropdown">
+          <select
+            value={activeCategory}
+            onChange={e => setActiveCategory(e.target.value)}
+            style={{
+              width: '100%',
+              background: '#16161c',
+              border: '1.5px solid #facc15',
+              borderRadius: 14,
+              padding: '10px 14px',
+              color: '#facc15',
+              fontSize: 14,
+              fontWeight: 700,
+              fontFamily: 'inherit',
+              outline: 'none',
+              cursor: 'pointer',
+            }}
+          >
+            <option value="all">🍽️ All Categories</option>
+            {(categories || []).map(cat => (
+              <option key={cat.id} value={cat.name}>
+                {CAT_EMOJI[cat.name] || '🍴'} {cat.name}
+              </option>
+            ))}
+          </select>
+        </div>
 
-  {/* Desktop/tablet scroll tabs (hidden on mobile) */}
-  <div className="desktop-cat-tabs" style={{ display: 'flex', gap: 8, overflowX: 'auto', scrollbarWidth: 'none' }}>
-    <CatTab label="🍽️ All" active={activeCategory === 'all'} onClick={() => setActiveCategory('all')} />
-    {(categories || []).map(cat => (
-      <CatTab key={cat.id} label={`${CAT_EMOJI[cat.name] || '🍴'} ${cat.name}`} active={activeCategory === cat.name} onClick={() => setActiveCategory(cat.name)} />
-    ))}
-  </div>
+        {/* Desktop/tablet scroll tabs */}
+        <div className="desktop-cat-tabs">
+          <CatTab label="🍽️ All" active={activeCategory === 'all'} onClick={() => setActiveCategory('all')} />
+          {(categories || []).map(cat => (
+            <CatTab key={cat.id} label={`${CAT_EMOJI[cat.name] || '🍴'} ${cat.name}`} active={activeCategory === cat.name} onClick={() => setActiveCategory(cat.name)} />
+          ))}
+        </div>
 
-</div>
+      </div>
 
       {/* MENU LIST */}
       {loading ? (
@@ -305,8 +314,8 @@ export default function MenuPage() {
         })}
       </div>
 
-    </div>   
-  )          
+    </div>
+  )
 }
 
 function CatTab({ label, active, onClick }) {
