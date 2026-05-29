@@ -48,10 +48,8 @@ export default function TablesPage() {
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#000', color: '#fff' }}>
       <AdminNavbar ordersCount={0} billingCount={0} />
-      {/* Main Content */}
       <div style={{ padding: '20px 16px', maxWidth: '1200px', margin: '0 auto' }}>
 
-        {/* Title and Add Button */}
         <div style={{
           display: 'flex', justifyContent: 'space-between',
           alignItems: 'center', marginBottom: '20px',
@@ -84,7 +82,6 @@ export default function TablesPage() {
           </button>
         </div>
 
-        {/* Add Table Form */}
         {showAdd && (
           <div style={{
             backgroundColor: '#18181b', border: '2px solid #facc15',
@@ -132,7 +129,6 @@ export default function TablesPage() {
           </div>
         )}
 
-        {/* Tables Grid */}
         {loading ? (
           <div style={{ textAlign: 'center', padding: '60px', color: '#facc15' }}>
             Loading tables...
@@ -158,11 +154,8 @@ export default function TablesPage() {
 }
 
 function TableCard({ table }) {
-  // FIXED: Pointing directly to your active live Railway production sub-domain using clean string variables interpolation
-  const downloadUrl  = `https://railway.app{table.id}/qr/`
-  
-  // FIXED: Pointing directly to your clean, live Vercel customer dashboard domain paths
-  const previewUrl   = `https://vercel.app{table.id}`
+  const downloadUrl  = `https://web-production-a3bd8.up.railway.app/api/v1/tables/${table.id}/qr/`
+  const previewUrl   = `https://mogleqrmenu-frontend.vercel.app/menu?tableId=${table.id}`
   const downloadName = `Table_${table.table_number}_QR.png`
 
   return (
@@ -201,8 +194,8 @@ function TableCard({ table }) {
 
 function DownloadButton({ url, filename, label }) {
   return (
-    <a
-      href={url}
+    
+      <a href={url}
       download={filename}
       style={{
         backgroundColor: '#facc15', color: '#000',
@@ -218,8 +211,8 @@ function DownloadButton({ url, filename, label }) {
 
 function PreviewButton({ url }) {
   return (
-    <a
-      href={url}
+    
+      <a href="url"
       target="_blank"
       rel="noreferrer"
       style={{
