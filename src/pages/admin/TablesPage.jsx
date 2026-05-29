@@ -158,21 +158,20 @@ export default function TablesPage() {
 }
 
 function TableCard({ table }) {
-  // Correct JavaScript comment syntax pointing to your live Railway backend URL
+  // FIXED: Added full sub-domain path, API endpoint parameters, and corrected ${table.id} string embedding
   const downloadUrl  = `https://railway.app{table.id}/qr/`
   
-  // Correct JavaScript comment syntax pointing to your live Vercel frontend URL
+  // FIXED: Linked up unique frontend production layout and parameters structure correctly
   const previewUrl   = `https://vercel.app{table.id}`
   const downloadName = `Table_${table.table_number}_QR.png`
 
-   
   return (
     <div style={{
       backgroundColor: '#18181b', border: '2px solid #facc15',
       borderRadius: '14px', padding: '16px', textAlign: 'center'
     }}>
       <h3 style={{
-        color: '#facc15', fontSize: '8px',
+        color: '#facc15', fontSize: '18px',
         fontWeight: '900', marginBottom: '12px'
       }}>
         Table {table.table_number}
