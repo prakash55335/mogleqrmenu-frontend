@@ -149,7 +149,7 @@ export default function FeedbackPage() {
         <div>
           <label style={{ color: '#6b7280', fontSize: 10, display: 'block', marginBottom: 6, letterSpacing: 1, textTransform: 'uppercase' }}>Your Name (Optional)</label>
           <input type="text" value={name} onChange={e => setName(e.target.value)}
-            placeholder="e.g. Prakash"
+            placeholder="e.g. Rahul"
             style={{ width: '100%', background: '#16161c', border: '1.5px solid #26262e', borderRadius: 12, padding: '12px 14px', color: '#fff', fontSize: 14, outline: 'none', fontFamily: 'inherit', boxSizing: 'border-box' }}
             onFocus={e => e.target.style.borderColor = '#facc15'}
             onBlur={e => e.target.style.borderColor = '#26262e'} />
