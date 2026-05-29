@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import axios from 'axios'
 import { generateBill } from '../../api/billingApi'
 import { fetchTaxSettings, calculateTax } from '../../utils/taxSettings'
 import { AdminNavbar } from './OrderPage'
@@ -169,6 +170,14 @@ export default function BillPrint() {
             </div>
           </div>
         </div>
+
+        {/* Action Buttons Interface Wrapper */}
+          <div className="no-print" style={{ display: 'flex', gap: '12px', padding: '20px', background: '#000', borderTop: '1px solid #222' }}>
+            <button onClick={() => navigate('/admin/billing')} style={{ flex: 1, backgroundColor: 'transparent', color: '#fff', border: '2px solid #facc15', padding: '12px', borderRadius: '8px', fontWeight: '700', cursor: 'pointer' }}>
+              ← Back
+            </button>
+
+            </div>
 
         {/* Buttons */}
         <div className="no-print" style={{ maxWidth: '480px', margin: '14px auto 30px', display: 'flex', gap: '10px' }}>
