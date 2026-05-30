@@ -83,19 +83,9 @@ export default function BillingPage() {
     }
   }
 
-  const handleGenerateBill = async (orderId) => {
-    setGenerating(orderId)
-    try {
-      await generateBill(orderId)
-      toast.success('Bill generated!', { id: `bill-${orderId}`, duration: 2000 })
-      navigate(`/admin/bill/${orderId}`)
-    } catch {
-      navigate(`/admin/bill/${orderId}`)
-    } finally {
-      setGenerating(null)
-    }
-  }
-
+  const handleGenerateBill = (orderId) => {
+  navigate(`/admin/bill/${orderId}`)
+}
   const totalToday = todayBills.reduce((s, b) => s + parseFloat(b.grand_total || 0), 0)
 
   return (
