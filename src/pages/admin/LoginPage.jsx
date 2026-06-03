@@ -8,13 +8,13 @@ export default function LoginPage() {
   const [password, setPassword] = useState('')
   const [loading, setLoading]   = useState(false)
   const { login, user } = useAuth()
-  const navigate  = useNavigate()
+  const navigate = useNavigate()
 
   // If already logged in redirect to correct page
   useEffect(() => {
     if (user) {
-    if (user.role === 'billing') navigate('/admin/billing')
-    else navigate('/admin/orders')
+      if (user.role === 'billing') navigate('/admin/billing')
+      else navigate('/admin/orders')
     }
   }, [user, navigate])
 
@@ -22,14 +22,14 @@ export default function LoginPage() {
     e.preventDefault()
     setLoading(true)
     try {
-      const user = await login(username, password)
-      toast.success(`Welcome ${user.full_name}!`, {
-      id: 'welcome-toast',
-      duration: 3000,
-       })
-      if (user.role === 'kitchen') navigate('/admin/kitchen')
-      else if (user.role === 'billing') navigate('/admin/billing')
-      else navigate('/admin/tables')
+      const loggedInUser = await login(username, password)
+      toast.success(`Welcome ${loggedInUser.full_name}!`, {
+        id: 'welcome-toast',
+        duration: 3000,
+      })
+      // ✅ Fixed - /admin/kitchen removed, kitchen → orders
+      if (loggedInUser.role === 'billing') navigate('/admin/billing')
+      else navigate('/admin/orders')   // admin + kitchen
     } catch {
       toast.error('Invalid username or password')
     } finally {
