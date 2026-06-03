@@ -9,5 +9,6 @@ export const getBillDetail = (orderId) =>
 export const markBillPaid = (billId) =>
   API.patch(`/api/v1/billing/${billId}/paid/`)
 
-export const completeBill = (billId) =>
-  API.patch(`/api/v1/billing/${billId}/complete/`)
+// Save grand_total (with tax) to the bill
+export const saveBillTotal = (billId, grandTotal) =>
+  API.patch(`/api/v1/billing/${billId}/save-total/`, { grand_total: grandTotal })
