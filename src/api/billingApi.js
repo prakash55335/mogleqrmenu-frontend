@@ -36,7 +36,6 @@
 // export const completeBill = (orderId) =>
 //   API.post(`/api/v1/billing/complete/${orderId}/`)
 
-
 import API from './axiosConfig'
 
 export const generateBill = (orderId) =>
@@ -48,6 +47,10 @@ export const getBillDetail = (orderId) =>
 export const markBillPaid = (billId) =>
   API.patch(`/api/v1/billing/${billId}/paid/`)
 
-// ✅ PATCH not POST — matches CompleteBillView which uses def patch
+// ✅ Keep this - used by BillingPage.jsx
+export const saveBillTotal = (billId, grandTotal) =>
+  API.patch(`/api/v1/billing/${billId}/complete/`, { grand_total: grandTotal })
+
+// ✅ Used by BillPrint.jsx
 export const completeBill = (billId, grandTotal) =>
   API.patch(`/api/v1/billing/${billId}/complete/`, { grand_total: grandTotal })
