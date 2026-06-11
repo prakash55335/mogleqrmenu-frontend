@@ -31,8 +31,8 @@ export default function BillPrint() {
     if (!bill) return
     setCompleting(true)
     try {
-      // Mark bill as completed so it appears in Bills Today
-      await completeBill(bill.id)
+      // ✅ Pass grandTotal so backend saves correct amount
+      await completeBill(bill.id, grandTotal)
     } catch (err) {
       console.error('Complete bill error:', err)
       // Still print even if complete fails
